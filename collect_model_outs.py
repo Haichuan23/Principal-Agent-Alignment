@@ -21,6 +21,12 @@ parser.add_argument("--recover", action='store_true', default = False)
 parser.add_argument("--config", type=str)
 
 parser.add_argument("--out_file", type=str)
+parser.add_argument("--strategic", action='store_true', help="Use threshold hack on rewards.")
+
+parser.add_argument("--top_k_val", type=float, default=10, help="How many tokens do we query reward model")
+parser.add_argument("--threshold", type=float, default=6.8, help="Reward threshold for strategic scaling")
+parser.add_argument("--high_scale", type=float, default=1.5, help="Scale factor for high rewards")
+parser.add_argument("--low_scale", type=float, default=0.75, help="Scale factor for low rewards")
 
 args = parser.parse_args()
 
@@ -39,7 +45,15 @@ cfg_path = Path(args.config)
 if not cfg_path.exists():
     print("ERROR: Config doesn't exist!")
     exit(1)
-    
+
+# ─── after you finish parsing args ───
+tag = (
+    f"_k{args.top_k_val}"
+    + (f"_thr{args.threshold:g}_hi{args.high_scale:g}_lo{args.low_scale:g}"
+       if args.strategic else "")
+)
+args.out_file = args.out_file + tag 
+
 out_path = Path(args.out_file + f"_0.jsonl")
 if out_path.exists() and (not args.recover):
     print("ERROR: out_path already exists!")
@@ -93,7 +107,8 @@ truncated_ds = test_ds[0:end_idx]
 print(f"{len(truncated_ds)=}")
 
 print(f"[INFO]: Loading models ({args.llm=}, {args.rm=})")
-search = ARGS(llm_path=args.llm, rm_path=args.rm, llm_dev=args.llm_gpu, rm_dev=args.rm_gpu)
+search = ARGS(llm_path=args.llm, rm_path=args.rm, llm_dev=args.llm_gpu, rm_dev=args.rm_gpu, strategic=args.strategic, 
+                threshold=args.threshold, high_scale=args.high_scale, low_scale=args.low_scale)
 print(f"[INFO]: Done")
 
 def runprompt(prompt: str, rm_weight=0., topk=5, new_token=24, mode="p_sigmoid_mixing", sample_temp=None, llm_dev:str="cuda:0") -> str:

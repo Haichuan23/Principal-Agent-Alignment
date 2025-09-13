@@ -2,11 +2,12 @@ from typing import List
 import torch
 from torch.nn import functional as F
 from tqdm import tqdm
+import csv
 
 # import the huggingface transformers libraries
 import transformers
 from transformers import AutoTokenizer, AutoModelForCausalLM, AutoModelForSequenceClassification, LlamaForCausalLM, LlamaForSequenceClassification
-
+# REWARD_CSV = "rewards_per_token.csv"
 #### auto size stuff
 import numpy as np
 def factors(x):
@@ -39,7 +40,8 @@ def even_chunk(data, chunk_size=10):
 
 # reward based search
 class ARGS:
-    def __init__(self, llm_path, rm_path, llm_dev="cuda:0", rm_dev="cuda:1", torch_dtype=torch.float16):
+    def __init__(self, llm_path, rm_path, llm_dev="cuda:0", rm_dev="cuda:1", torch_dtype=torch.float16, strategic = False, 
+                threshold = 6.8, high_scale = 1.05, low_scale = 0.95):
         self.llm_dev = llm_dev
         self.rm_dev = rm_dev
         print("Loading LLM...")
@@ -52,6 +54,13 @@ class ARGS:
         print("Loading RM...")
         self.RM = AutoModelForSequenceClassification.from_pretrained(rm_path, num_labels=1, torch_dtype=torch_dtype).to(self.rm_dev)
         self.RM.eval()
+
+        ## Whether we use strategic reward
+        self.strategic = strategic
+
+        self.threshold = threshold
+        self.high_scale = high_scale
+        self.low_scale = low_scale
         
     def get_input_ids(self, prompt: str) -> torch.Tensor:
         tokens = self.tokenizer(prompt, return_tensors="pt").input_ids.to(self.llm_dev)
@@ -85,6 +94,17 @@ class ARGS:
             rm_out = self.RM(**self.LLM.prepare_inputs_for_generation(input_ids=chunk, attention_mask=create_attention_mask(chunk.shape[1], chunk.shape[0]).to(self.rm_dev), past_key_values=pkv, use_cache=True))
             current_rm_cached = rm_out.past_key_values
             rewards = rm_out.logits.flatten().to(self.llm_dev)
+            if self.strategic:
+                rewards = torch.where(
+                    rewards > self.threshold,
+                    rewards * self.high_scale,
+                    rewards * self.low_scale
+                )
+
+            # with open(REWARD_CSV, "a", newline="") as csvfile:
+            #     writer = csv.writer(csvfile)
+            #     # convert tensor to list of floats
+            #     writer.writerow(rewards.tolist())
             del rm_out
             if debug: print(f"{rewards=}")
             if debug: print(f"{rewards.shape=}")
@@ -130,6 +150,16 @@ class ARGS:
         if debug: print(f"{rm_out.logits.flatten()=}")
 
         rewards = rm_out.logits.flatten().to(self.llm_dev)
+        if self.strategic:
+            rewards = torch.where(
+                    rewards > self.threshold,
+                    rewards * self.high_scale,
+                    rewards * self.low_scale
+                )
+        # with open(REWARD_CSV, "a", newline="") as csvfile:
+        #     writer = csv.writer(csvfile)
+        #     # convert tensor to list of floats
+        #     writer.writerow(rewards.tolist())
         del rm_out
         if debug: print(f"{rewards.shape=}")
 

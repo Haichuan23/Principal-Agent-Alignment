@@ -20,7 +20,7 @@ def get_args():
 
 
 def compute_rep_n(text, n):
-    tokens = word_tokenize(text)
+    tokens = word_tokenize(text, preserve_line=True)
     ngrams = [tuple(tokens[i : i + n]) for i in range(len(tokens) - n + 1)]
     rep_n = 100 * (1.0 - len(set(ngrams)) / (len(ngrams) + 1))
     return rep_n
@@ -51,8 +51,11 @@ def compute_coherence(prompts, responses):
 if __name__ == "__main__":
     args = get_args()
 
-    path = os.path.join("outputs", f"{args.run_name}.json")
+    path = os.path.join("final_outputs", f"{args.run_name}.jsonl")
     generations = json.load(open(path, "r"))
+    # path = os.path.join("outputs", f"{args.run_name}.jsonl")
+    # with open(path, "r") as f:
+    #     generations = [json.loads(line) for line in f if line.strip()]
 
     entries = []
     for generation in tqdm(generations):
