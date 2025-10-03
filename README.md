@@ -1,16 +1,16 @@
 # A Principal Agent Framework on AI Alignment
 
-Step 1: Run generate_offline_data.py <\br>
+Step 1: Run generate_offline_data.py </br>
 
-Step 2: Run compute_offline_shaped_reward.py <\br>
+Step 2: Run compute_offline_shaped_reward.py </br>
 
-Step 3: Run train_value_function.py <\br>
+Step 3: Run train_value_function.py </br>
 
-Step 4: Run util_decode_new.py <\br>
+Step 4: Run util_decode_new.py </br>
 
-Step 5: Run new_collect_model_outs.py <\br>
+Step 5: Run new_collect_model_outs.py </br>
 
-Step 6: Run measure_reward and measure_metric on the generation <\br>
+Step 6: Run measure_reward and measure_metric on the generation </br>
 <!-- First run generate_offline_data.py, 
 then run compute_offline_shaped_reward.py, 
 then run train_value_function.py,
