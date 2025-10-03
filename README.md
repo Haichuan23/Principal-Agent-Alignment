@@ -1,4 +1,19 @@
-# Alignment as Reward-Guided Search
+# A Principal Agent Framework on AI Alignment
+
+Step 1: Run generate_offline_data.py
+Step 2: Run compute_offline_shaped_reward.py
+Step 3: Run train_value_function.py
+Step 4: Run util_decode_new.py
+Step 5: Run new_collect_model_outs.py 
+Step 6: Run measure_reward and measure_metric on the generation
+<!-- First run generate_offline_data.py, 
+then run compute_offline_shaped_reward.py, 
+then run train_value_function.py,
+and finally run the code. -->
+
+
+
+<!-- # Alignment as Reward-Guided Search
 
 This repository contains the technical details and official implementation of the paper [**Alignment as Reward-Guided Search**](https://openreview.net/forum?id=shgx0eqdw6). In this work, we introduce ARGS, Alignment as Reward-Guided Search, a novel framework that integrates alignment into the decoding process. By adjusting the model’s probabilistic predictions using a reward signal, ARGS generates texts with semantic diversity while being aligned with human preferences.
 
@@ -266,4 +281,4 @@ If you find this repository useful in your research, please consider citing:
     booktitle={Proceedings of the International Conference on Learning Representations},
     year={2024}
 }
-```
+``` -->
